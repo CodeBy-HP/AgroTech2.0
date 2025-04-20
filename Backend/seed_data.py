@@ -280,10 +280,10 @@ def seed_database():
             # Generate 0-5 bids per farm
             num_bids = random.randint(0, 5)
             if num_bids > 0:
-                # Select random companies to make bids
-                bidding_companies = random.sample(range(1, len(companies) + 1), min(num_bids, len(companies)))
+                # Select random traders to make bids
+                bidding_traders = random.sample(range(1, len(companies) + 1), min(num_bids, len(companies)))
                 
-                for company_idx in bidding_companies:
+                for trader_idx in bidding_traders:
                     # Base bid amount on the farm's asking price with some variation
                     min_price = farm.min_asking_price
                     max_variation = min_price * 0.4  # Up to 40% variation
@@ -306,8 +306,8 @@ def seed_database():
                     
                     bids.append({
                         "farm_id": farm_id, 
-                        "company_username": f"company{company_idx}", 
-                        "bid_amount": str(max(1000, round(bid_amount, 2))),  # Ensure minimum bid amount
+                        "trader_id": trader_idx,
+                        "bid_amount": max(1000, round(bid_amount, 2)),  # Ensure minimum bid amount
                         "bid_date": bid_date, 
                         "status": status,
                         "updated_at": updated_at

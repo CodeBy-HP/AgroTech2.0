@@ -25,7 +25,7 @@ export default function BidList({
   const fetchBids = async () => {
     try {
       let fetchedBids;
-      if (onlyMyBids && user?.user_type === 'company') {
+      if (onlyMyBids && user?.user_type === 'trader') {
         fetchedBids = await getMyBids(filters.status || null);
       } else {
         fetchedBids = await getBids(filters);
@@ -173,8 +173,8 @@ export default function BidList({
             </svg>
             <p className="mt-4 text-gray-500 font-medium">No bids found matching your criteria.</p>
             <p className="mt-1 text-gray-400 text-sm">Try changing your filter options or check back later.</p>
-            {!farmId && user?.user_type === 'company' && (
-              <Link href="/dashboard/company/farms" className="mt-5 inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+            {!farmId && user?.user_type === 'trader' && (
+              <Link href="/dashboard/trader/farms" className="mt-5 inline-block px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                 Browse farms to place bids
               </Link>
             )}

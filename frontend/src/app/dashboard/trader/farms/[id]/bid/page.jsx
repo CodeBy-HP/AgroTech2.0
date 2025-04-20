@@ -16,7 +16,7 @@ export default function PlaceBidPage({ params }) {
     if (!loading) {
       if (!user) {
         router.push('/login');
-      } else if (user.user_type !== 'company') {
+      } else if (user.user_type !== 'trader') {
         router.push('/unauthorized');
       }
     }
@@ -32,7 +32,7 @@ export default function PlaceBidPage({ params }) {
     );
   }
 
-  if (!user || user.user_type !== 'company') {
+  if (!user || user.user_type !== 'trader') {
     return null; // Don't render anything until redirect happens
   }
 
@@ -41,7 +41,7 @@ export default function PlaceBidPage({ params }) {
       <div className="max-w-3xl mx-auto rounded-xl overflow-hidden shadow-lg bg-white">
         <div className="px-6 py-6 bg-gradient-to-r from-green-400 to-green-600 flex items-center">
           <Link 
-            href={`/dashboard/company/farms/${farmId}`} 
+            href={`/dashboard/trader/farms/${farmId}`} 
             className="mr-4 flex items-center justify-center"
           >
             <div className="bg-white p-2 rounded-lg shadow-md hover:bg-green-50 transition-colors duration-200">
@@ -65,4 +65,4 @@ export default function PlaceBidPage({ params }) {
       </div>
     </div>
   );
-}
+} 

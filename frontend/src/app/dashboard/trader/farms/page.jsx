@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import FarmList from '@/components/farm/FarmList';
 
-export default function CompanyFarmsPage() {
+export default function TraderFarmsPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
 
@@ -13,7 +13,7 @@ export default function CompanyFarmsPage() {
     if (!loading) {
       if (!user) {
         router.push('/login');
-      } else if (user.user_type !== 'company') {
+      } else if (user.user_type !== 'trader') {
         router.push('/unauthorized');
       }
     }
@@ -29,7 +29,7 @@ export default function CompanyFarmsPage() {
     );
   }
 
-  if (!user || user.user_type !== 'company') {
+  if (!user || user.user_type !== 'trader') {
     return null; // Don't render anything until redirect happens
   }
 
@@ -56,4 +56,4 @@ export default function CompanyFarmsPage() {
       </div>
     </div>
   );
-}
+} 

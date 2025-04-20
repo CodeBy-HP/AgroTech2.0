@@ -173,7 +173,7 @@ class BidUpdate(BaseModel):
 
 class BidResponse(BidBase):
     id: int
-    company_id: int
+    trader_id: int
     bid_date: datetime
     status: BidStatusEnum
     updated_at: datetime

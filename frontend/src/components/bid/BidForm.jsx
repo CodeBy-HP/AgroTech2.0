@@ -16,11 +16,11 @@ export default function BidForm({ farmId }) {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Redirect if not authenticated or not a company
+  // Redirect if not authenticated or not a trader
   useEffect(() => {
     if (!user) {
       router.push('/login');
-    } else if (user.user_type !== 'company') {
+    } else if (user.user_type !== 'trader') {
       router.push('/unauthorized');
     } else {
       loadFarm();
@@ -76,7 +76,7 @@ export default function BidForm({ farmId }) {
       
       // Redirect after a short delay
       setTimeout(() => {
-        router.push(`/dashboard/company/farms/${farmId}`);
+        router.push(`/dashboard/trader/farms/${farmId}`);
       }, 2000);
       
     } catch (err) {
@@ -92,12 +92,12 @@ export default function BidForm({ farmId }) {
     }
   };
 
-  // If not logged in or not a company, show a message
-  if (!user || user.user_type !== 'company') {
+  // If not logged in or not a trader, show a message
+  if (!user || user.user_type !== 'trader') {
     return (
       <div className="bg-gradient-to-br from-green-50 to-white p-8 rounded-xl shadow-lg border border-green-100">
         <div className="text-red-600 font-medium text-center p-4 bg-red-50 rounded-lg">
-          {!user ? 'Not authenticated. Please log in.' : 'You must be a company to access this feature.'}
+          {!user ? 'Not authenticated. Please log in.' : 'You must be a trader to access this feature.'}
         </div>
       </div>
     );
@@ -205,7 +205,7 @@ export default function BidForm({ farmId }) {
         <div className="flex justify-end pt-4">
           <button
             type="button"
-            onClick={() => router.push(`/dashboard/company/farms/${farmId}`)}
+            onClick={() => router.push(`/dashboard/trader/farms/${farmId}`)}
             className="mr-4 px-6 py-3 border border-gray-300 rounded-lg shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 transition duration-150"
           >
             Cancel

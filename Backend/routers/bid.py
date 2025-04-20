@@ -10,30 +10,30 @@ from auth.auth_handler import get_current_active_user
 
 router = APIRouter(prefix="/api", tags=["bids"])
 
-# Create a new bid (only for companies)
+# Create a new bid (only for traders)
 @router.post("/bids/", response_model=BidResponse)
 async def create_bid(
     bid: BidCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    # Check if user is a company
-    if current_user.user_type != UserType.COMPANY:
-        raise HTTPException(status_code=403, detail="Only companies can place bids")
+    # Check if user is a trader
+    if current_user.user_type != UserType.TRADER:
+        raise HTTPException(status_code=403, detail="Only traders can place bids")
     
-    # Check if company profile exists
-    if not current_user.company_profile:
-        raise HTTPException(status_code=400, detail="Company profile not found")
+    # Check if trader profile exists
+    if not current_user.trader_profile:
+        raise HTTPException(status_code=400, detail="Trader profile not found")
     
     # Check if farm exists
     farm = db.query(Farm).filter(Farm.id == bid.farm_id).first()
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found")
     
-    # Check if company already has a pending bid for this farm
+    # Check if trader already has a pending bid for this farm
     existing_bid = db.query(Bid).filter(
         Bid.farm_id == bid.farm_id,
-        Bid.company_id == current_user.company_profile.id,
+        Bid.trader_id == current_user.trader_profile.id,
         Bid.status == BidStatusEnum.PENDING
     ).first()
     
@@ -43,7 +43,7 @@ async def create_bid(
     # Create new bid
     db_bid = Bid(
         farm_id=bid.farm_id,
-        company_id=current_user.company_profile.id,
+        trader_id=current_user.trader_profile.id,
         bid_amount=bid.bid_amount,
         status=BidStatusEnum.PENDING
     )
@@ -66,11 +66,11 @@ async def get_bids(
 ):
     query = db.query(Bid)
     
-    # Companies can only see their own bids
-    if current_user.user_type == UserType.COMPANY:
-        if not current_user.company_profile:
-            raise HTTPException(status_code=400, detail="Company profile not found")
-        query = query.filter(Bid.company_id == current_user.company_profile.id)
+    # Traders can only see their own bids
+    if current_user.user_type == UserType.TRADER:
+        if not current_user.trader_profile:
+            raise HTTPException(status_code=400, detail="Trader profile not found")
+        query = query.filter(Bid.trader_id == current_user.trader_profile.id)
     
     # Farmers can only see bids for their farms
     elif current_user.user_type == UserType.FARMER:
@@ -107,10 +107,10 @@ async def get_bid(
     # Check permissions
     farm = db.query(Farm).filter(Farm.id == bid.farm_id).first()
     
-    # Only the bid maker (company) or farm owner (farmer) can see a specific bid
-    if (current_user.user_type == UserType.COMPANY and 
-        current_user.company_profile and 
-        current_user.company_profile.id == bid.company_id) or \
+    # Only the bid maker (trader) or farm owner (farmer) can see a specific bid
+    if (current_user.user_type == UserType.TRADER and 
+        current_user.trader_profile and 
+        current_user.trader_profile.id == bid.trader_id) or \
        (current_user.user_type == UserType.FARMER and 
         current_user.farmer_profile and 
         current_user.farmer_profile.id == farm.farmer_id):
@@ -136,9 +136,9 @@ async def update_bid(
     
     # Check permissions based on update type
     if bid_update.bid_amount is not None:
-        # Only the bid maker (company) can update the bid amount
-        if not current_user.company_profile or current_user.company_profile.id != db_bid.company_id:
-            raise HTTPException(status_code=403, detail="Only the company that made the bid can update the amount")
+        # Only the bid maker (trader) can update the bid amount
+        if not current_user.trader_profile or current_user.trader_profile.id != db_bid.trader_id:
+            raise HTTPException(status_code=403, detail="Only the trader that made the bid can update the amount")
         
         # Can only update if bid is still pending
         if db_bid.status != BidStatusEnum.PENDING:
@@ -172,8 +172,8 @@ async def delete_bid(
         raise HTTPException(status_code=404, detail="Bid not found")
     
     # Check if current user is the bid maker
-    if not current_user.company_profile or current_user.company_profile.id != db_bid.company_id:
-        raise HTTPException(status_code=403, detail="Only the company that made the bid can delete it")
+    if not current_user.trader_profile or current_user.trader_profile.id != db_bid.trader_id:
+        raise HTTPException(status_code=403, detail="Only the trader that made the bid can delete it")
     
     # Check if bid is still pending
     if db_bid.status != BidStatusEnum.PENDING:
@@ -184,20 +184,20 @@ async def delete_bid(
     db.commit()
     return None
 
-# Get all bids made by the current company
+# Get all bids made by the current trader
 @router.get("/bids/my-bids/", response_model=List[BidResponse])
 async def get_my_bids(
     status: Optional[BidStatusEnum] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    if current_user.user_type != UserType.COMPANY:
-        raise HTTPException(status_code=403, detail="Only companies can access this endpoint")
+    if current_user.user_type != UserType.TRADER:
+        raise HTTPException(status_code=403, detail="Only traders can access this endpoint")
     
-    if not current_user.company_profile:
-        raise HTTPException(status_code=400, detail="Company profile not found")
+    if not current_user.trader_profile:
+        raise HTTPException(status_code=400, detail="Trader profile not found")
     
-    query = db.query(Bid).filter(Bid.company_id == current_user.company_profile.id)
+    query = db.query(Bid).filter(Bid.trader_id == current_user.trader_profile.id)
     
     if status:
         query = query.filter(Bid.status == status)

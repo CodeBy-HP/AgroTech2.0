@@ -47,13 +47,7 @@ export default function FarmDetailPage({ params }) {
         return;
       }
       
-      // Check if the current user is the owner of this farm
-      if (farmData.farmer_username !== user.username) {
-        setError("You don't have permission to view this farm");
-        router.push('/dashboard/farmer/farms');
-        return;
-      }
-      
+      // Make the farm data available
       setFarm(farmData);
     } catch (err) {
       setError("Failed to load farm data. Please try again.");
@@ -159,45 +153,49 @@ export default function FarmDetailPage({ params }) {
             </div>
             
             <div className="flex space-x-3 w-full sm:w-auto">
-              <Link
-                href={`/dashboard/farmer/farms/${farm.id}/edit`}
-                className="inline-flex items-center px-4 py-2 border border-emerald-300 shadow-sm text-sm font-medium rounded-lg text-emerald-700 bg-white hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200"
-              >
-                <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit
-              </Link>
-              
-              {!confirmDelete ? (
-                <button
-                  onClick={() => setConfirmDelete(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
-                >
-                  <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Delete
-                </button>
-              ) : (
-                <div className="flex items-center space-x-2 bg-red-50 p-3 rounded-lg border border-red-100">
-                  <svg className="h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                  <span className="text-sm text-red-800 font-medium">Are you sure?</span>
-                  <button
-                    onClick={() => setConfirmDelete(false)}
-                    className="text-sm text-gray-600 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-100 transition-colors duration-200"
+              {farm.farmer_username === user.username && (
+                <>
+                  <Link
+                    href={`/dashboard/farmer/farms/${farm.id}/edit`}
+                    className="inline-flex items-center px-4 py-2 border border-emerald-300 shadow-sm text-sm font-medium rounded-lg text-emerald-700 bg-white hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-200"
                   >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    className="text-sm text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded transition-colors duration-200"
-                  >
-                    Delete
-                  </button>
-                </div>
+                    <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit
+                  </Link>
+                  
+                  {!confirmDelete ? (
+                    <button
+                      onClick={() => setConfirmDelete(true)}
+                      className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200"
+                    >
+                      <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Delete
+                    </button>
+                  ) : (
+                    <div className="flex items-center space-x-2 bg-red-50 p-3 rounded-lg border border-red-100">
+                      <svg className="h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <span className="text-sm text-red-800 font-medium">Are you sure?</span>
+                      <button
+                        onClick={() => setConfirmDelete(false)}
+                        className="text-sm text-gray-600 hover:text-gray-800 px-2 py-1 rounded hover:bg-gray-100 transition-colors duration-200"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleDelete}
+                        className="text-sm text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded transition-colors duration-200"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -276,7 +274,7 @@ export default function FarmDetailPage({ params }) {
                 <div className="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 border-b border-emerald-100">
                   <dt className="text-sm font-medium text-gray-500 flex items-center">
                     <svg className="h-4 w-4 text-emerald-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2M6 5a2 2 0 11-4 0 2 2 0 014 0zM18 5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     Farming Type
                   </dt>
