@@ -130,15 +130,34 @@ export function AuthProvider({ children }) {
    */
   const registerFarmer = async (userData) => {
     try {
+      // Format data according to new normalized schema with profile field
+      const formattedData = {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        full_name: userData.full_name,
+        mobile_number: userData.mobile_number,
+        user_type: 'farmer',
+        profile: {
+          farm_location: userData.farm_location,
+          farm_area: parseFloat(userData.farm_area),
+          government_id: userData.government_id || null,
+        }
+      };
+
+      console.log('Registering farmer with data:', formattedData);
+
       const response = await fetch(`${API_URL}/auth/register/farmer`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify(formattedData),
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Registration failed with status:', response.status, errorData);
         throw new Error('Registration failed');
       }
 
@@ -156,15 +175,84 @@ export function AuthProvider({ children }) {
    */
   const registerCompany = async (userData) => {
     try {
+      // Format data according to new normalized schema with profile field
+      const formattedData = {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        full_name: userData.full_name,
+        mobile_number: userData.mobile_number,
+        user_type: 'company',
+        profile: {
+          company_name: userData.company_name,
+          company_type: userData.company_type,
+          company_location: userData.company_location,
+          contact_person_designation: userData.contact_person_designation,
+          company_gst_id: userData.company_gst_id || null,
+        }
+      };
+
+      console.log('Registering company with data:', formattedData);
+
       const response = await fetch(`${API_URL}/auth/register/company`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify(formattedData),
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Registration failed with status:', response.status, errorData);
+        throw new Error('Registration failed');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
+  };
+
+  /**
+   * Registers a new trader account with the system
+   * @param {object} userData - Trader registration data
+   * @returns {Promise<object>} Registration confirmation
+   */
+  const registerTrader = async (userData) => {
+    try {
+      // Format data according to normalized schema with profile field
+      const formattedData = {
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        full_name: userData.full_name,
+        mobile_number: userData.mobile_number,
+        user_type: 'trader',
+        profile: {
+          address: userData.address,
+          gst_number: userData.gst_number || null,
+          government_id: userData.government_id || null,
+          logistics_capability: userData.logistics_capability || false,
+          storage_capacity_tons: userData.storage_capacity_tons ? parseFloat(userData.storage_capacity_tons) : null,
+          commodities_dealt: userData.commodities_dealt || [],
+        }
+      };
+
+      console.log('Registering trader with data:', formattedData);
+
+      const response = await fetch(`${API_URL}/auth/register/trader`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formattedData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Registration failed with status:', response.status, errorData);
         throw new Error('Registration failed');
       }
 
@@ -184,6 +272,7 @@ export function AuthProvider({ children }) {
       logout,
       registerFarmer,
       registerCompany,
+      registerTrader,
     }}>
       {children}
     </AuthContext.Provider>

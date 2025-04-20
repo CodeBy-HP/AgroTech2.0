@@ -32,6 +32,38 @@ export default function Navbar() {
     logout();  // Call the logout function
   };
 
+  // Helper function to get the appropriate dashboard link based on user type
+  const getDashboardLink = () => {
+    if (!user) return '/login';
+    
+    switch (user.user_type) {
+      case 'farmer':
+        return '/dashboard/farmer';
+      case 'company':
+        return '/dashboard/company';
+      case 'trader':
+        return '/dashboard/trader';
+      default:
+        return '/login';
+    }
+  };
+
+  // Helper function to get the appropriate profile link based on user type
+  const getProfileLink = () => {
+    if (!user) return '/login';
+    
+    switch (user.user_type) {
+      case 'farmer':
+        return '/profile/farmer';
+      case 'company':
+        return '/profile/company';
+      case 'trader':
+        return '/profile/trader';
+      default:
+        return '/login';
+    }
+  };
+
   return (
     <nav className="bg-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -68,6 +100,9 @@ export default function Navbar() {
                       <Link href="/register/company" className="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50">
                         Register as Company
                       </Link>
+                      <Link href="/register/trader" className="block px-4 py-2 text-sm text-gray-700 hover:bg-green-50">
+                        Register as Trader
+                      </Link>
                     </div>
                   )}
                 </div>
@@ -75,13 +110,13 @@ export default function Navbar() {
             ) : (
               <>
                 <Link 
-                  href={user.user_type === 'farmer' ? '/dashboard/farmer' : '/dashboard/company'} 
+                  href={getDashboardLink()} 
                   className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-green-600"
                 >
                   Dashboard
                 </Link>
                 <Link 
-                  href={user.user_type === 'farmer' ? '/profile/farmer' : '/profile/company'} 
+                  href={getProfileLink()} 
                   className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-green-600"
                 >
                   Profile
@@ -147,17 +182,23 @@ export default function Navbar() {
                 >
                   Register as Company
                 </Link>
+                <Link
+                  href="/register/trader"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50"
+                >
+                  Register as Trader
+                </Link>
               </>
             ) : (
               <>
                 <Link
-                  href={user.user_type === 'farmer' ? '/dashboard/farmer' : '/dashboard/company'}
+                  href={getDashboardLink()}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50"
                 >
                   Dashboard
                 </Link>
                 <Link
-                  href={user.user_type === 'farmer' ? '/profile/farmer' : '/profile/company'}
+                  href={getProfileLink()}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-green-600 hover:bg-gray-50"
                 >
                   Profile

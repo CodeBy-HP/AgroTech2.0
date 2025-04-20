@@ -21,6 +21,10 @@ async def create_bid(
     if current_user.user_type != UserType.COMPANY:
         raise HTTPException(status_code=403, detail="Only companies can place bids")
     
+    # Check if company profile exists
+    if not current_user.company_profile:
+        raise HTTPException(status_code=400, detail="Company profile not found")
+    
     # Check if farm exists
     farm = db.query(Farm).filter(Farm.id == bid.farm_id).first()
     if not farm:
@@ -29,7 +33,7 @@ async def create_bid(
     # Check if company already has a pending bid for this farm
     existing_bid = db.query(Bid).filter(
         Bid.farm_id == bid.farm_id,
-        Bid.company_username == current_user.username,
+        Bid.company_id == current_user.company_profile.id,
         Bid.status == BidStatusEnum.PENDING
     ).first()
     
@@ -39,7 +43,7 @@ async def create_bid(
     # Create new bid
     db_bid = Bid(
         farm_id=bid.farm_id,
-        company_username=current_user.username,
+        company_id=current_user.company_profile.id,
         bid_amount=bid.bid_amount,
         status=BidStatusEnum.PENDING
     )
@@ -64,12 +68,16 @@ async def get_bids(
     
     # Companies can only see their own bids
     if current_user.user_type == UserType.COMPANY:
-        query = query.filter(Bid.company_username == current_user.username)
+        if not current_user.company_profile:
+            raise HTTPException(status_code=400, detail="Company profile not found")
+        query = query.filter(Bid.company_id == current_user.company_profile.id)
     
     # Farmers can only see bids for their farms
     elif current_user.user_type == UserType.FARMER:
+        if not current_user.farmer_profile:
+            raise HTTPException(status_code=400, detail="Farmer profile not found")
         # Get all farms owned by the farmer
-        farmer_farms = db.query(Farm.id).filter(Farm.farmer_username == current_user.username).all()
+        farmer_farms = db.query(Farm.id).filter(Farm.farmer_id == current_user.farmer_profile.id).all()
         farmer_farm_ids = [farm[0] for farm in farmer_farms]
         query = query.filter(Bid.farm_id.in_(farmer_farm_ids))
     
@@ -100,8 +108,12 @@ async def get_bid(
     farm = db.query(Farm).filter(Farm.id == bid.farm_id).first()
     
     # Only the bid maker (company) or farm owner (farmer) can see a specific bid
-    if (current_user.user_type == UserType.COMPANY and current_user.username == bid.company_username) or \
-       (current_user.user_type == UserType.FARMER and current_user.username == farm.farmer_username):
+    if (current_user.user_type == UserType.COMPANY and 
+        current_user.company_profile and 
+        current_user.company_profile.id == bid.company_id) or \
+       (current_user.user_type == UserType.FARMER and 
+        current_user.farmer_profile and 
+        current_user.farmer_profile.id == farm.farmer_id):
         return bid
     else:
         raise HTTPException(status_code=403, detail="You don't have permission to view this bid")
@@ -125,7 +137,7 @@ async def update_bid(
     # Check permissions based on update type
     if bid_update.bid_amount is not None:
         # Only the bid maker (company) can update the bid amount
-        if current_user.user_type != UserType.COMPANY or current_user.username != db_bid.company_username:
+        if not current_user.company_profile or current_user.company_profile.id != db_bid.company_id:
             raise HTTPException(status_code=403, detail="Only the company that made the bid can update the amount")
         
         # Can only update if bid is still pending
@@ -137,7 +149,7 @@ async def update_bid(
     
     if bid_update.status is not None:
         # Only the farm owner (farmer) can update the bid status
-        if current_user.user_type != UserType.FARMER or current_user.username != farm.farmer_username:
+        if not current_user.farmer_profile or current_user.farmer_profile.id != farm.farmer_id:
             raise HTTPException(status_code=403, detail="Only the farm owner can update the bid status")
         
         # Update bid status
@@ -160,7 +172,7 @@ async def delete_bid(
         raise HTTPException(status_code=404, detail="Bid not found")
     
     # Check if current user is the bid maker
-    if current_user.user_type != UserType.COMPANY or current_user.username != db_bid.company_username:
+    if not current_user.company_profile or current_user.company_profile.id != db_bid.company_id:
         raise HTTPException(status_code=403, detail="Only the company that made the bid can delete it")
     
     # Check if bid is still pending
@@ -182,7 +194,10 @@ async def get_my_bids(
     if current_user.user_type != UserType.COMPANY:
         raise HTTPException(status_code=403, detail="Only companies can access this endpoint")
     
-    query = db.query(Bid).filter(Bid.company_username == current_user.username)
+    if not current_user.company_profile:
+        raise HTTPException(status_code=400, detail="Company profile not found")
+    
+    query = db.query(Bid).filter(Bid.company_id == current_user.company_profile.id)
     
     if status:
         query = query.filter(Bid.status == status)

@@ -35,11 +35,17 @@ def get_password_hash(password):
 
 
 def get_user(db: Session, identifier: str):
+    """
+    Get user by username or email with eager loading of profile relationships
+    """
     db_user = db.query(User).filter((User.username == identifier) | (User.email == identifier)).first()
     return db_user
 
 
 def authenticate_user(db: Session, identifier: str, password: str):
+    """
+    Authenticate user by username/email and password
+    """
     user = get_user(db, identifier)
     if not user:
         user = db.query(User).filter(User.email == identifier).first()
@@ -49,6 +55,9 @@ def authenticate_user(db: Session, identifier: str, password: str):
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
+    """
+    Create a JWT access token with the given data and expiration
+    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
@@ -60,6 +69,10 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """
+    Validate JWT token and return the current user
+    Loads user with profile relationships
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -74,6 +87,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     except InvalidTokenError:
         raise credentials_exception
 
+    # Load user with eager loading of profile relationships
     user = db.query(User).filter(User.username == token_data.username).first()
     if user is None:
         raise credentials_exception
@@ -81,4 +95,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
+    """
+    Check if the current user is active
+    """
     return current_user

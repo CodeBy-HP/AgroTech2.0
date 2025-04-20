@@ -44,6 +44,8 @@ export default function Login() {
         router.push('/dashboard/farmer');
       } else if (user.user_type === 'company') {
         router.push('/dashboard/company');
+      } else if (user.user_type === 'trader') {
+        router.push('/dashboard/trader');
       }
     }
   }, [user, router]);
@@ -56,13 +58,16 @@ export default function Login() {
             Sign in to your account
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
+            Or register as a{' '}
             <Link href="/register/farmer" className="font-medium text-green-600 hover:text-green-500">
-              register as a farmer
-            </Link>{' '}
-            or{' '}
+              farmer
+            </Link>,{' '}
             <Link href="/register/company" className="font-medium text-green-600 hover:text-green-500">
               company
+            </Link>{' '}
+            or{' '}
+            <Link href="/register/trader" className="font-medium text-green-600 hover:text-green-500">
+              trader
             </Link>
           </p>
         </div>

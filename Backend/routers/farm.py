@@ -30,10 +30,14 @@ async def create_farm(
     if current_user.user_type != UserType.FARMER:
         raise HTTPException(status_code=403, detail="Only farmers can create farm listings")
     
+    # Get the farmer profile ID
+    if not current_user.farmer_profile:
+        raise HTTPException(status_code=400, detail="Farmer profile not found")
+    
     # Create new farm
     db_farm = Farm(
         **farm.dict(),
-        farmer_username=current_user.username
+        farmer_id=current_user.farmer_profile.id
     )
     
     db.add(db_farm)
@@ -55,7 +59,7 @@ async def upload_farm_images(
         raise HTTPException(status_code=404, detail="Farm not found")
     
     # Check if current user owns the farm
-    if current_user.username != db_farm.farmer_username:
+    if not current_user.farmer_profile or current_user.farmer_profile.id != db_farm.farmer_id:
         raise HTTPException(status_code=403, detail="You don't have permission to upload images for this farm")
     
     # Save images and create records
@@ -115,7 +119,7 @@ async def delete_farm_image(
         raise HTTPException(status_code=404, detail="Farm not found")
     
     # Check if current user owns the farm
-    if current_user.username != db_farm.farmer_username:
+    if not current_user.farmer_profile or current_user.farmer_profile.id != db_farm.farmer_id:
         raise HTTPException(status_code=403, detail="You don't have permission to delete this image")
     
     # Delete the file
@@ -168,7 +172,7 @@ async def get_farm(
         raise HTTPException(status_code=404, detail="Farm not found")
     
     # Check access permissions
-    if current_user.user_type == UserType.FARMER and current_user.username != farm.farmer_username:
+    if current_user.user_type == UserType.FARMER and current_user.farmer_profile and current_user.farmer_profile.id != farm.farmer_id:
         # Farmers can only see their own farms in detail
         pass  # We'll still return the farm, as it's public info
     
@@ -198,12 +202,12 @@ async def update_farm(
         raise HTTPException(status_code=404, detail="Farm not found")
     
     # Check if current user owns the farm
-    if current_user.username != db_farm.farmer_username:
+    if not current_user.farmer_profile or current_user.farmer_profile.id != db_farm.farmer_id:
         raise HTTPException(status_code=403, detail="You don't have permission to update this farm")
     
-    # Update farm with provided values
-    farm_data = farm_update.dict(exclude_unset=True)
-    for key, value in farm_data.items():
+    # Update farm fields
+    update_data = farm_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
         setattr(db_farm, key, value)
     
     db.commit()
@@ -223,13 +227,11 @@ async def delete_farm(
         raise HTTPException(status_code=404, detail="Farm not found")
     
     # Check if current user owns the farm
-    if current_user.username != db_farm.farmer_username:
+    if not current_user.farmer_profile or current_user.farmer_profile.id != db_farm.farmer_id:
         raise HTTPException(status_code=403, detail="You don't have permission to delete this farm")
     
-    # Get all images for the farm
+    # Delete farm images first
     farm_images = db.query(FarmImage).filter(FarmImage.farm_id == farm_id).all()
-    
-    # Delete all image files
     for image in farm_images:
         delete_file(image.image_url)
         db.delete(image)
@@ -237,18 +239,22 @@ async def delete_farm(
     # Delete farm
     db.delete(db_farm)
     db.commit()
+    
     return None
 
-# Get all farms owned by the current farmer
+# Get farms owned by the current user
 @router.get("/farms/my-farms/", response_model=List[FarmResponse])
 async def get_my_farms(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
     if current_user.user_type != UserType.FARMER:
-        raise HTTPException(status_code=403, detail="Only farmers can access this endpoint")
+        raise HTTPException(status_code=403, detail="Only farmers can view their farms")
     
-    farms = db.query(Farm).filter(Farm.farmer_username == current_user.username).all()
+    if not current_user.farmer_profile:
+        raise HTTPException(status_code=400, detail="Farmer profile not found")
+    
+    farms = db.query(Farm).filter(Farm.farmer_id == current_user.farmer_profile.id).all()
     return farms
 
 # Crop Disease Identification endpoint
