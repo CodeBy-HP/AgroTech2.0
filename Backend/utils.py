@@ -7,7 +7,9 @@ import uuid
 # Create media directory if it doesn't exist
 MEDIA_DIR = Path("media")
 FARM_IMAGES_DIR = MEDIA_DIR / "farm_images"
+INVENTORY_IMAGES_DIR = MEDIA_DIR / "inventory_images"
 FARM_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+INVENTORY_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
 async def save_upload_file(upload_file: UploadFile, directory: Path = FARM_IMAGES_DIR) -> str:
     """
@@ -34,7 +36,8 @@ async def save_upload_file(upload_file: UploadFile, directory: Path = FARM_IMAGE
     await upload_file.seek(0)
     
     # Return relative path for storage in database
-    return f"/media/farm_images/{unique_filename}"
+    relative_dir = f"{directory.name}"
+    return f"/media/{relative_dir}/{unique_filename}"
 
 def delete_file(file_path: str) -> bool:
     """

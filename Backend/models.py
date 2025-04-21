@@ -92,6 +92,66 @@ class Trader(Base):
     
     # Relationship to User
     user = relationship("User", back_populates="trader_profile")
+    
+    # Relationship to Inventory
+    inventories = relationship("Inventory", back_populates="trader", cascade="all, delete-orphan")
+
+class Inventory(Base):
+    """
+    Inventory entity representing a trader's storage facility/warehouse.
+    Includes location data and capacity information.
+    """
+    __tablename__ = "inventories"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    trader_id = Column(Integer, ForeignKey("traders.id"), nullable=False)
+    location_name = Column(String, nullable=False)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    capacity = Column(Float, nullable=False)  # in MT (Metric Tons)
+    image_url = Column(String, nullable=True)  # File path to inventory/warehouse image
+    govt_documentation = Column(String, nullable=True)  # File path to government documentation
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    trader = relationship("Trader", back_populates="inventories")
+    commodities = relationship("Commodity", back_populates="inventory", cascade="all, delete-orphan")
+    images = relationship("InventoryImage", back_populates="inventory", cascade="all, delete-orphan")
+
+class InventoryImage(Base):
+    """Storage model for inventory images to facilitate visual verification"""
+    __tablename__ = "inventory_images"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    inventory_id = Column(Integer, ForeignKey("inventories.id"), nullable=False)
+    image_url = Column(String, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    
+    # Relationship
+    inventory = relationship("Inventory", back_populates="images")
+
+class Commodity(Base):
+    """
+    Commodity entity representing goods stored in a trader's inventory.
+    Includes product details, quantity, pricing and quality information.
+    """
+    __tablename__ = "commodities"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    inventory_id = Column(Integer, ForeignKey("inventories.id"), nullable=False)
+    name = Column(String, nullable=False)
+    quantity_available = Column(Float, nullable=False)  # in MT or kg
+    price_per_unit = Column(Float, nullable=False)
+    harvested_date = Column(Date, nullable=True)
+    testing_score = Column(Float, nullable=True)  # Platform's trust/quality score (e.g., 4.2/5 or 87%)
+    tested_by_platform = Column(Boolean, default=False)
+    additional_info = Column(String, nullable=True)  # Stored as JSON string
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    # Relationship
+    inventory = relationship("Inventory", back_populates="commodities")
 
 class FarmStatusEnum(str, enum.Enum):
     """Enumeration representing the current state of a farm's crop cycle"""
@@ -172,3 +232,100 @@ class CropHealthRecord(Base):
     
     # Relationship
     user = relationship("User")
+
+class RequirementStatusEnum(str, enum.Enum):
+    """Enumeration representing the current state of a company requirement"""
+    OPEN = "open"
+    CLOSED = "closed"
+    IN_DISCUSSION = "in_discussion"
+    FULFILLED = "fulfilled"
+
+class Requirement(Base):
+    """
+    Requirement entity representing a company's demand for agricultural commodities.
+    Contains details about product, quantity, pricing and delivery requirements.
+    """
+    __tablename__ = "requirements"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    commodity_type = Column(String, nullable=False)
+    quantity_required = Column(Float, nullable=False)  # in MT
+    delivery_location = Column(String, nullable=True)
+    delivery_lat = Column(Float, nullable=True)
+    delivery_long = Column(Float, nullable=True)
+    expected_price_min = Column(Float, nullable=True)
+    expected_price_max = Column(Float, nullable=True)
+    requirement_type = Column(String, nullable=False)  # 'current' or 'future'
+    delivery_window_start = Column(Date, nullable=False)
+    delivery_window_end = Column(Date, nullable=False)
+    description = Column(String, nullable=True)
+    status = Column(Enum(RequirementStatusEnum), default=RequirementStatusEnum.OPEN)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    company = relationship("Company", backref="requirements")
+    applications = relationship("TraderApplication", back_populates="requirement", cascade="all, delete-orphan")
+
+class TraderApplicationStatusEnum(str, enum.Enum):
+    """Enumeration representing the status of a trader's application to a requirement"""
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+
+class TraderApplication(Base):
+    """
+    TraderApplication entity representing a trader's proposal to fulfill a company's requirement.
+    Contains details about pricing, quantities, and delivery timing.
+    """
+    __tablename__ = "trader_applications"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    requirement_id = Column(Integer, ForeignKey("requirements.id"), nullable=False)
+    trader_id = Column(Integer, ForeignKey("traders.id"), nullable=False)
+    inventory_id = Column(Integer, ForeignKey("inventories.id"), nullable=False)
+    proposed_quantity = Column(Float, nullable=False)  # in MT
+    proposed_price = Column(Float, nullable=False)  # per unit
+    eta = Column(Date, nullable=False)  # estimated time of arrival/delivery
+    message = Column(String, nullable=True)
+    status = Column(Enum(TraderApplicationStatusEnum), default=TraderApplicationStatusEnum.PENDING)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    requirement = relationship("Requirement", back_populates="applications")
+    trader = relationship("Trader", backref="applications")
+    inventory = relationship("Inventory", backref="applications")
+
+class DealStatusEnum(str, enum.Enum):
+    """Enumeration representing the status of a deal between a company and trader"""
+    IN_DISCUSSION = "in_discussion"
+    CONFIRMED = "confirmed"
+    COMPLETED = "completed"
+
+class Deal(Base):
+    """
+    Deal entity representing a finalized agreement between a company and trader.
+    Tracks the full lifecycle of the transaction from agreement to delivery.
+    """
+    __tablename__ = "deals"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)
+    trader_id = Column(Integer, ForeignKey("traders.id"), nullable=False)
+    inventory_id = Column(Integer, ForeignKey("inventories.id"), nullable=False)
+    requirement_id = Column(Integer, ForeignKey("requirements.id"), nullable=True)  # Optional, may be null for direct deals
+    commodity_type = Column(String, nullable=False)
+    quantity = Column(Float, nullable=False)  # in MT
+    price = Column(Float, nullable=False)  # per unit
+    eta = Column(Date, nullable=False)  # estimated time of arrival/delivery
+    status = Column(Enum(DealStatusEnum), default=DealStatusEnum.IN_DISCUSSION)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    # Relationships
+    company = relationship("Company", backref="deals")
+    trader = relationship("Trader", backref="deals")
+    inventory = relationship("Inventory", backref="deals")
+    requirement = relationship("Requirement", backref="deals")

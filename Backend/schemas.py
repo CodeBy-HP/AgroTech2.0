@@ -249,3 +249,239 @@ class TraderProfileResponse(TraderProfileBase):
 
 class TraderResponse(UserResponse):
     profile: Optional[TraderProfileResponse] = None
+
+
+# Inventory Schemas
+class InventoryBase(BaseModel):
+    location_name: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    capacity: float
+    govt_documentation: Optional[str] = None
+
+
+class InventoryCreate(InventoryBase):
+    pass
+
+
+class InventoryUpdate(BaseModel):
+    location_name: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    capacity: Optional[float] = None
+    govt_documentation: Optional[str] = None
+
+
+class InventoryResponse(InventoryBase):
+    id: int
+    trader_id: int
+    image_url: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Inventory Image Schemas
+class InventoryImageBase(BaseModel):
+    inventory_id: int
+    image_url: str
+
+
+class InventoryImageCreate(InventoryImageBase):
+    pass
+
+
+class InventoryImageResponse(InventoryImageBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class InventoryWithImagesResponse(InventoryResponse):
+    images: List[InventoryImageResponse] = []
+
+
+# Commodity Schemas
+class CommodityBase(BaseModel):
+    name: str
+    quantity_available: float
+    price_per_unit: float
+    harvested_date: Optional[date] = None
+    testing_score: Optional[float] = None
+    tested_by_platform: bool = False
+    additional_info: Optional[str] = None
+
+
+class CommodityCreate(CommodityBase):
+    pass
+
+
+class CommodityUpdate(BaseModel):
+    name: Optional[str] = None
+    quantity_available: Optional[float] = None
+    price_per_unit: Optional[float] = None
+    harvested_date: Optional[date] = None
+    testing_score: Optional[float] = None
+    tested_by_platform: Optional[bool] = None
+    additional_info: Optional[str] = None
+
+
+class CommodityResponse(CommodityBase):
+    id: int
+    inventory_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class InventoryWithCommoditiesResponse(InventoryWithImagesResponse):
+    commodities: List[CommodityResponse] = []
+
+
+# Requirement Schemas
+class RequirementBase(BaseModel):
+    commodity_type: str
+    quantity_required: float
+    delivery_location: Optional[str] = None
+    delivery_lat: Optional[float] = None
+    delivery_long: Optional[float] = None
+    expected_price_min: Optional[float] = None
+    expected_price_max: Optional[float] = None
+    requirement_type: str  # 'current' or 'future'
+    delivery_window_start: date
+    delivery_window_end: date
+    description: Optional[str] = None
+
+
+class RequirementCreate(RequirementBase):
+    pass
+
+
+class RequirementUpdate(BaseModel):
+    commodity_type: Optional[str] = None
+    quantity_required: Optional[float] = None
+    delivery_location: Optional[str] = None
+    delivery_lat: Optional[float] = None
+    delivery_long: Optional[float] = None
+    expected_price_min: Optional[float] = None
+    expected_price_max: Optional[float] = None
+    requirement_type: Optional[str] = None
+    delivery_window_start: Optional[date] = None
+    delivery_window_end: Optional[date] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+
+
+class RequirementResponse(RequirementBase):
+    id: int
+    company_id: int
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    company: Optional[CompanyProfileResponse] = None
+
+    class Config:
+        from_attributes = True
+
+
+class RequirementBasicInfo(BaseModel):
+    id: int
+    commodity_type: str
+    company: Optional[CompanyProfileResponse] = None
+
+    class Config:
+        from_attributes = True
+
+
+# TraderApplication Schemas
+class TraderApplicationBase(BaseModel):
+    requirement_id: int
+    trader_id: int
+    inventory_id: int
+    proposed_quantity: float
+    proposed_price: float
+    eta: date
+    message: Optional[str] = None
+
+
+class TraderApplicationCreate(BaseModel):
+    requirement_id: int
+    inventory_id: int
+    proposed_quantity: float
+    proposed_price: float
+    eta: date
+    message: Optional[str] = None
+
+
+class TraderApplicationUpdate(BaseModel):
+    status: str
+
+
+class TraderApplicationResponse(TraderApplicationBase):
+    id: int
+    status: str
+    created_at: datetime
+    requirement: Optional[RequirementBasicInfo] = None
+
+    class Config:
+        from_attributes = True
+
+
+class TraderApplicationDetailResponse(TraderApplicationResponse):
+    trader_name: Optional[str] = None
+    trader_rating: Optional[float] = None
+    inventory_location: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+
+# Deal Schemas
+class DealBase(BaseModel):
+    company_id: int
+    trader_id: int
+    inventory_id: int
+    requirement_id: Optional[int] = None
+    commodity_type: str
+    quantity: float
+    price: float
+    eta: date
+
+
+class DealCreate(BaseModel):
+    trader_id: int
+    inventory_id: int
+    requirement_id: Optional[int] = None
+    commodity_type: str
+    quantity: float
+    price: float
+    eta: date
+
+
+class DealUpdate(BaseModel):
+    status: str
+
+
+class DealResponse(DealBase):
+    id: int
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DealDetailResponse(DealResponse):
+    trader_name: Optional[str] = None
+    company_name: Optional[str] = None
+    inventory_location: Optional[str] = None
+    
+    class Config:
+        from_attributes = True

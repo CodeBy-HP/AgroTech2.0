@@ -8,7 +8,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-from routers import auth, user, farm, schemes, crop_health
+from routers import auth, user, farm, schemes, crop_health, inventory, requirements, company
 
 # Initialize environment variables from .env file
 # Critical for secure credential management in development and production
@@ -39,6 +39,10 @@ media_dir.mkdir(exist_ok=True)
 crop_images_dir = Path("media/crop_images")
 crop_images_dir.mkdir(exist_ok=True)
 
+# Create dedicated directory for inventory images
+inventory_images_dir = Path("media/inventory_images")
+inventory_images_dir.mkdir(exist_ok=True)
+
 # Configure static file serving
 # Enables direct access to media files via URL
 app.mount("/media", StaticFiles(directory="media"), name="media")
@@ -47,9 +51,11 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 app.include_router(user.router)
 app.include_router(auth.router, prefix="/auth")
 app.include_router(farm.router)
-
+app.include_router(inventory.router)
 app.include_router(schemes.router)
 app.include_router(crop_health.router)
+app.include_router(requirements.router)
+app.include_router(company.router)
 
 @app.get("/")
 async def root():
