@@ -5,10 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useFarm } from '@/context/FarmContext';
 import Link from 'next/link';
-import BidList from '@/components/bid/BidList';
-import ImageGallery from '@/components/farm/ImageGallery';
 import { formatDate, formatCurrency, formatFarmStatus } from '@/utils/formatters';
-import { use } from 'react';
+import ImageGallery from '@/components/farm/ImageGallery';
 
 export default function FarmDetailPage({ params }) {
   const router = useRouter();
@@ -349,20 +347,6 @@ export default function FarmDetailPage({ params }) {
                 )}
               </dl>
             </div>
-          </div>
-        </div>
-
-        {/* Bids Section */}
-        <div className="bg-white shadow-md rounded-xl overflow-hidden border border-gray-100 mb-6">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 className="text-lg font-medium text-gray-900">Bids</h3>
-          </div>
-          
-          <div className="px-6 py-5">
-            <BidList farmId={farm.id} />
           </div>
         </div>
       </div>

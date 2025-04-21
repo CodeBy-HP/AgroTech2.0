@@ -8,7 +8,7 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-from routers import auth, user, farm, bid, schemes, crop_health
+from routers import auth, user, farm, schemes, crop_health
 
 # Initialize environment variables from .env file
 # Critical for secure credential management in development and production
@@ -47,7 +47,7 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 app.include_router(user.router)
 app.include_router(auth.router, prefix="/auth")
 app.include_router(farm.router)
-app.include_router(bid.router)
+
 app.include_router(schemes.router)
 app.include_router(crop_health.router)
 

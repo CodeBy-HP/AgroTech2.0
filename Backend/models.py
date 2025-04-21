@@ -92,9 +92,6 @@ class Trader(Base):
     
     # Relationship to User
     user = relationship("User", back_populates="trader_profile")
-    
-    # Relationship to Bids
-    bids = relationship("Bid", back_populates="trader", cascade="all, delete-orphan")
 
 class FarmStatusEnum(str, enum.Enum):
     """Enumeration representing the current state of a farm's crop cycle"""
@@ -128,7 +125,6 @@ class Farm(Base):
     # Relationships
     farmer = relationship("Farmer", back_populates="farms")
     images = relationship("FarmImage", back_populates="farm", cascade="all, delete-orphan")
-    bids = relationship("Bid", back_populates="farm", cascade="all, delete-orphan")
 
 class FarmImage(Base):
     """Storage model for farm images to facilitate visual verification and analysis"""
@@ -142,30 +138,6 @@ class FarmImage(Base):
     # Relationship
     farm = relationship("Farm", back_populates="images")
 
-class BidStatusEnum(str, enum.Enum):
-    """Status tracking for the bidding workflow process"""
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
-
-class Bid(Base):
-    """
-    Bid entity representing offers from traders to farmers.
-    Implements a complete transaction tracking system.
-    """
-    __tablename__ = "bids"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    farm_id = Column(Integer, ForeignKey("farms.id"), nullable=False)
-    trader_id = Column(Integer, ForeignKey("traders.id"), nullable=False)
-    bid_amount = Column(Float, nullable=False)
-    bid_date = Column(DateTime, server_default=func.now())
-    status = Column(Enum(BidStatusEnum), default=BidStatusEnum.PENDING, nullable=False)
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
-    
-    # Relationships
-    farm = relationship("Farm", back_populates="bids")
-    trader = relationship("Trader", back_populates="bids")
 
 class GovScheme(Base):
     """

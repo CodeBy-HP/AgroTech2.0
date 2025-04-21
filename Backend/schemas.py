@@ -2,7 +2,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List, Literal
 from datetime import date, datetime
-from models import UserType, FarmStatusEnum, BidStatusEnum
+from models import UserType, FarmStatusEnum
 
 
 class Token(BaseModel):
@@ -154,41 +154,6 @@ class FarmImageResponse(FarmImageBase):
 
     class Config:
         from_attributes = True
-
-
-# Bid Schemas
-class BidBase(BaseModel):
-    farm_id: int
-    bid_amount: float
-
-
-class BidCreate(BidBase):
-    pass
-
-
-class BidUpdate(BaseModel):
-    bid_amount: Optional[float] = None
-    status: Optional[BidStatusEnum] = None
-
-
-class BidResponse(BidBase):
-    id: int
-    trader_id: int
-    bid_date: datetime
-    status: BidStatusEnum
-    updated_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-# Additional response schemas
-class FarmWithBidsResponse(FarmResponse):
-    bids: List[BidResponse] = []
-
-
-class BidWithFarmResponse(BidResponse):
-    farm: FarmResponse
 
 
 class FarmWithImagesResponse(FarmResponse):

@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 from database import get_db
 from models import User, Farm, FarmImage, UserType, FarmStatusEnum
-from schemas import FarmCreate, FarmResponse, FarmUpdate, FarmWithBidsResponse, FarmImageResponse, FarmWithImagesResponse, DiseaseIdentificationResponse
+from schemas import FarmCreate, FarmResponse, FarmUpdate, FarmImageResponse, FarmWithImagesResponse, DiseaseIdentificationResponse
 from auth.auth_handler import get_current_active_user
 from utils import save_upload_file, delete_file
 

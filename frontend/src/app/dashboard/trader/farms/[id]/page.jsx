@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useFarm } from '@/context/FarmContext';
 import Link from 'next/link';
-import BidList from '@/components/bid/BidList';
-import ImageGallery from '@/components/farm/ImageGallery';
 import { formatDate, formatCurrency, formatFarmStatus } from '@/utils/formatters';
+import ImageGallery from '@/components/farm/ImageGallery';
 
 export default function TraderFarmDetailPage({ params }) {
   const router = useRouter();
@@ -177,16 +176,6 @@ export default function TraderFarmDetailPage({ params }) {
                 </div>
               </div>
             )}
-            
-            {/* Bids section */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
-                <h2 className="text-xl font-bold text-gray-800">Your Bids for This Farm</h2>
-              </div>
-              <div className="p-6">
-                <BidList farmId={farm.id} />
-              </div>
-            </div>
           </div>
           
           {/* Right column - Farm details */}
@@ -278,32 +267,6 @@ export default function TraderFarmDetailPage({ params }) {
                     </div>
                   )}
                 </dl>
-              </div>
-            </div>
-            
-            {/* CTA */}
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800">Ready to bid?</h3>
-                  <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                    {formatFarmStatus(farm.farm_status)}
-                  </span>
-                </div>
-                
-                <p className="text-gray-600 text-sm mb-6">
-                  Place your bid now to secure this farm's produce.
-                </p>
-                
-                <Link
-                  href={`/dashboard/trader/farms/${farm.id}/bid`}
-                  className="w-full inline-flex justify-center items-center px-5 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
-                >
-                  <svg className="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Place Bid
-                </Link>
               </div>
             </div>
           </div>
